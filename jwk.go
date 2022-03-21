@@ -40,6 +40,7 @@ import (
 
 // rawJSONWebKey represents a public or private key in JWK format, used for parsing/serializing.
 type rawJSONWebKey struct {
+	KeyOps []string `json:"key_ops,omitempty"`
 	Use string      `json:"use,omitempty"`
 	Kty string      `json:"kty,omitempty"`
 	Kid string      `json:"kid,omitempty"`
@@ -77,6 +78,8 @@ type JSONWebKey struct {
 	Algorithm string
 	// Key use, parsed from `use` header.
 	Use string
+	// Key operations, parsed from `key_ops` header.
+	KeyOps []string
 
 	// X.509 certificate chain, parsed from `x5c` header.
 	Certificates []*x509.Certificate
@@ -119,6 +122,7 @@ func (k JSONWebKey) MarshalJSON() ([]byte, error) {
 	raw.Kid = k.KeyID
 	raw.Alg = k.Algorithm
 	raw.Use = k.Use
+	raw.KeyOps = k.KeyOps
 
 	for _, cert := range k.Certificates {
 		raw.X5c = append(raw.X5c, base64.StdEncoding.EncodeToString(cert.Raw))
@@ -243,7 +247,7 @@ func (k *JSONWebKey) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	*k = JSONWebKey{Key: key, KeyID: raw.Kid, Algorithm: raw.Alg, Use: raw.Use, Certificates: certs}
+	*k = JSONWebKey{Key: key, KeyID: raw.Kid, Algorithm: raw.Alg, Use: raw.Use, KeyOps: raw.KeyOps, Certificates: certs}
 
 	if raw.X5u != "" {
 		k.CertificatesURL, err = url.Parse(raw.X5u)
